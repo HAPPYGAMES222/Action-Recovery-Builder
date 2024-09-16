@@ -143,6 +143,18 @@ jobs:
       with:
         swap-size-gb: 12
 
+    - name: Building recovery (AOSP)
+      if: ${{ steps.buildtree.outputs.value == 'aosp' }} 
+      run: |
+        source build/envsetup.sh
+        export ALLOW_MISSING_DEPENDENCIES=true
+        if [ ${{ inputs.RECOVERY_INSTALLER }} = true ] && [ ${{ steps.recoveryinstaller.outcome == 'success' }} ]; then
+          export USE_RECOVERY_INSTALLER=true
+          export RECOVERY_INSTALLER_PATH=bootable/recovery/installer
+        fi
+        lunch twrp_${{ inputs.DEVICE_NAME }}-eng && make $(tr -d _ <<< ${{ inputs.BUILD_TARGET }})image -j$(nproc --all)
+      working-directory: workspace
+
     - name: Building recovery
       run: |
         source build/envsetup.sh
